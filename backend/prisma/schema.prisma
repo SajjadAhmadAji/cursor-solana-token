@@ -1,0 +1,88 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now())
+  tokens       Token[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model Token {
+  id           String     @id @default(cuid())
+  name         String
+  symbol       String
+  blockchain   Blockchain
+  network      String
+  totalSupply  String
+  decimals     Int
+  mintedCount  String     @default("0")
+  mintAddress  String?
+  creatorId    String?
+  creator      User?      @relation(fields: [creatorId], references: [id])
+  metadata     Metadata?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+enum Blockchain {
+  SOLANA
+  ETHEREUM
+}
+
+model Metadata {
+  id          String   @id @default(cuid())
+  tokenId     String   @unique
+  token       Token    @relation(fields: [tokenId], references: [id])
+  ipfsHash    String
+  imageUrl    String
+  attributes  Json
+  description String?
+  createdAt   DateTime @default(now())
+}
+
+model APIKey {
+  id        String     @id @default(cuid())
+  type      APIKeyType
+  key       String
+  createdAt DateTime   @default(now())
+}
+
+enum APIKeyType {
+  PINATA
+  INFURA
+  HELIUS
+}
+
+model NetworkSetting {
+  id         String     @id @default(cuid())
+  blockchain Blockchain
+  network    String
+  status     String
+}
+
+model Wallet {
+  id         String     @id @default(cuid())
+  blockchain Blockchain
+  address    String
+  createdAt  DateTime   @default(now())
+}
